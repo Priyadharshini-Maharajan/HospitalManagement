@@ -1,0 +1,44 @@
+.patients-title {
+    font-size: 40px;
+    color: #003366;
+    margin-bottom: 30px;
+    margin-left: -20px;
+  }
+  
+  .patients-table {
+
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-left: 100px;
+    margin-right: 20px;
+  }
+  
+  .patients-table th,
+  .patients-table td {
+    padding: 12px 20px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: #003366;
+    width: 300px;
+  }
+  
+  .patients-table th {
+    background-color: #0059b3;
+    color: white;
+  }
+  
+  .patients-table tr:hover {
+    background-color: #e6f0ff;
+    cursor: pointer;
+  }
+  
+  .patient-face {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  

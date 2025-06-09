@@ -1,0 +1,74 @@
+.patients-container {
+    display: flex;
+    gap: 20px;
+    width: 800px;
+    margin-left: 20px;
+    padding-left: 70px;
+  }
+  
+  .patients-list {
+    flex: 1;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .patients-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .patients-list li {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .patients-list li.selected,
+  .patients-list li:hover {
+    background-color: #e7f1ff;
+  }
+  
+  .patient-details {
+    flex: 1;
+    background: #fff;
+    padding: 20px;
+    padding-right: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .patient-details form label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .patient-details form input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .patient-details form button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .patient-details form button:hover {
+    background: #0056b3;
+  }
+  

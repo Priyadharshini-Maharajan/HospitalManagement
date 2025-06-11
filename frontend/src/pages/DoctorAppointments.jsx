@@ -3,6 +3,7 @@ import SidebarDoctor from "../components/SidebarDoctor";
 import Navbar from "../components/Navbar";
 import "../styles/DoctorAppointment.css";
 import { useOutletContext } from 'react-router-dom';
+
 const DoctorAppointments = () => {
 const { doctorId } = useOutletContext();
 const [appointments, setAppointments] = useState([]);
@@ -241,15 +242,15 @@ const [nextAdvisedDate, setNextAdvisedDate] = useState("");
                   </label>
                   <label>
                     Height (cm):
-                    <input type="number" value={selectedAppointment.patient.admissionheight} />
+                    <input type="number" value={selectedAppointment.patient.height} />
                   </label>
                   <label>
                     Weight (kg):
-                    <input type="number" value={selectedAppointment.patient.admissionweight}  />
+                    <input type="number" value={selectedAppointment.patient.weight}  />
                   </label>
                   <label>
                     Blood Pressure:
-                    <input type="text" value={selectedAppointment.patient.blood_pressure}  />
+                    <input type="text" value={selectedAppointment.patient.bloodPressure}  />
                   </label>
                   <label>
                     Reason for Visit:

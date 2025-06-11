@@ -535,12 +535,17 @@ async def match_face(file: UploadFile = File(...)):
 
         if similarity > 0.9:  # Reduce threshold to test
             match = metadata[index]
-            
+            medical_id=match.get("medical_id")
+            patient_from_db = await patients_collection.find_one({"medical_id": medical_id})            
             #to store matched patient and send result to frontend
             patient={
                 "name":match.get("name"),
-                "age":match.get("age"),
-                "medical_id":match.get("medical_id")
+                "medical_id":match.get("medical_id"),
+                "gender":patient_from_db["gender"],
+                "age":patient_from_db['age'],
+                "diagnosis":patient_from_db['reason'],
+                "base_64":patient_from_db["image_base64"]
+                
             }
             matched_patients.append(patient)
             
@@ -684,7 +689,6 @@ async def register_patient(
             await append_encoding_to_index(
                 face_embedding,
                 {"name":name,
-                "age":age,
                 "medical_id":medical_id}
             )
             

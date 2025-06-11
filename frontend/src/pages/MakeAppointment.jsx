@@ -15,6 +15,9 @@ const MakeAppointment = () => {
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
   const [loading, setLoading] = useState(true);
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [bloodPressure, setBloodPressure] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +35,22 @@ const MakeAppointment = () => {
     };
     fetchData();
   }, []);
-
+  const updatePatientDetails = async () => {
+    try {
+      const payload = {
+        height,
+        weight,
+        blood_pressure: bloodPressure
+      };
+  
+      await axios.put(`http://localhost:8000/patients/${selectedPatient._id}`, payload);
+      alert("✅ Patient details updated.");
+    } catch (error) {
+      console.error("Error updating patient:", error);
+      alert("❌ Failed to update patient details.");
+    }
+  };
+  
   const handlePatientClick = (patient) => {
     setSelectedPatient(patient);
     setReason('');
@@ -51,23 +69,24 @@ const MakeAppointment = () => {
       return;
     }
   
-    const selectedDoctor = doctors.find(d => d._id === doctor);
-  
-    const appointmentData = {
-      patient_id: selectedPatient._id,
-      doctor_id: doctor,
-      department,
-      date: appointmentDate,
-      time: appointmentTime,
-      reason
-    };
-  
     try {
-      const res = await axios.post('http://localhost:8000/appointments', appointmentData);
+      // 1. Update patient details
+      await updatePatientDetails();
   
+      // 2. Proceed with appointment creation
+      const selectedDoctor = doctors.find(d => d._id === doctor);
+      const appointmentData = {
+        patient_id: selectedPatient._id,
+        doctor_id: doctor,
+        department,
+        date: appointmentDate,
+        time: appointmentTime,
+        reason
+      };
+  
+      const res = await axios.post('http://localhost:8000/appointments', appointmentData);
       const { visitType } = res.data;
   
-      // ✅ Notify based on visit type
       if (visitType === "sudden") {
         alert('⚠️ Sudden Visit: The appointment is before the advised date.');
       } else if (visitType === "expected") {
@@ -87,6 +106,9 @@ const MakeAppointment = () => {
       setDoctor('');
       setAppointmentDate('');
       setAppointmentTime('');
+      setHeight('');
+      setWeight('');
+      setBloodPressure('');
     } catch (error) {
       console.error('Failed to create appointment:', error);
       alert('❌ Failed to create appointment.');
@@ -146,10 +168,48 @@ const MakeAppointment = () => {
 
             {selectedPatient && (
               <div className="appointment-form">
-                <h3>Appointment Details</h3>
+
+                <h3>Patient Details</h3>
                 <p><strong>Patient:</strong> {selectedPatient.name}</p>
 
                 <form onSubmit={handleSubmit}>
+                <label>
+  Height:
+  <input
+    type="text"
+    value={height}
+    onChange={(e) => setHeight(e.target.value)}
+    required
+  />
+</label>
+<label>
+  Weight:
+  <input
+    type="text"
+    value={weight}
+    onChange={(e) => setWeight(e.target.value)}
+    required
+  />
+</label>
+<label>
+  Blood Pressure:
+  <input
+    type="text"
+    value={bloodPressure}
+    onChange={(e) => setBloodPressure(e.target.value)}
+    required
+  />
+</label>
+
+
+                  <button type="submit">Update Details</button>
+
+          
+
+                <h3>Appointment Details</h3>
+
+
+
                   <label>
                     Reason for Visit:
                     <input

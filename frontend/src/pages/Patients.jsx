@@ -46,12 +46,16 @@ const Patients = () => {
             {patients.map((patient, index) => (
               <tr key={index}>
                 <td>
-                  {patient.face ? (
-                    <img src={patient.face} alt={patient.name} className="patient-face" />
-                  ) : (
-                    <span>No Image</span>
-                  )}
-                </td>
+                    {patient.base_64 ? (
+                      <img
+                        src={`data:image/jpeg;base64,${patient.base_64}`}
+                        alt="Patient"
+                        style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span>No Image</span>
+                    )}
+                  </td>
                 <td>{patient.name}</td>
                 <td>{patient.age}</td>
                 <td>{patient.gender}</td>

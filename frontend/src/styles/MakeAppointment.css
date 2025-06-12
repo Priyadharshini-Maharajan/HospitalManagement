@@ -2,15 +2,15 @@
     font-size: 40px;
     color: #003366;
     margin-bottom: 20px;
-    margin-left: -980px;
+    margin-left: -150px;
   }
   
   .make-appointment-container {
     display: flex;
-    gap: 30px;
-    width: 900px;
-    margin-right: 900px;
-    margin-left: 80px;
+    gap: 10px;
+    width: 1000px;
+    margin-right: 90px;
+    margin-left: 10px;
   }
   
   .patients-list {
@@ -65,7 +65,7 @@
   }
   
   .appointment-form {
-    flex-grow: 1;
+    flex-grow: -0.1;
     background: white;
     padding: 25px;
     border-radius: 10px;

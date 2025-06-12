@@ -111,12 +111,24 @@ class LoginRequest(BaseModel):
     password: str
     role: str
 
+<<<<<<< HEAD
 class PatientUpdate(BaseModel):
     height: str
     weight: str
     blood_pressure: str
     
 #1.GET /Root
+=======
+from pydantic import BaseModel
+from typing import Optional
+
+class PatientUpdate(BaseModel):
+    height: Optional[float] = None
+    weight: Optional[float] = None
+    blood_pressure: Optional[str] = None
+
+##1.Root
+>>>>>>> ec37dfb (Your update message)
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
@@ -138,11 +150,31 @@ async def update_patient(patient_id: str, patient_update: PatientUpdate):
             {"$set": update_fields}
         )
 
+<<<<<<< HEAD
+=======
+@app.put("/patients/{patient_id}")
+async def update_patient(patient_id: str, patient_update: PatientUpdate):
+    try:
+        update_fields = {}
+        if patient_update.height:
+            update_fields["height"] = patient_update.height
+        if patient_update.weight:
+            update_fields["weight"] = patient_update.weight
+        if patient_update.blood_pressure:
+            update_fields["blood_pressure"] = patient_update.blood_pressure
+
+        result = patients_collection.update_one(
+            {"_id": ObjectId(patient_id)},
+            {"$set": update_fields}
+        )
+
+>>>>>>> ec37dfb (Your update message)
         if not result or result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Patient not found.")
 
         return {"message": "Patient details updated successfully."}
 
+<<<<<<< HEAD
     except Exception as e:
         import traceback
         print(" ERROR in update_patient route:")
@@ -150,6 +182,18 @@ async def update_patient(patient_id: str, patient_update: PatientUpdate):
         raise HTTPException(status_code=500, detail=str(e))
     
 #2.POST /login doctor and receptionist
+=======
+
+    except Exception as e:
+        import traceback
+        print("ERROR in update_patient route:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+##login doctor and receptionist
+>>>>>>> ec37dfb (Your update message)
 @app.post("/login")
 async def login(data: LoginRequest):
     if data.role == "doctor":

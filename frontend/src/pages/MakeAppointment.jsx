@@ -168,42 +168,38 @@ const MakeAppointment = () => {
 
             {selectedPatient && (
               <div className="appointment-form">
-          
-              
-
-
                 <form onSubmit={handleSubmit}> 
                 <h3>Patient Details</h3>
 
-                  <label>
-                    Height:
-                    <input
-                      type="text"
-                      value={height}
-                      onChange={(e) => setReason(e.target.value)}
-                      required
-                    />
-                  </label>
+                <label>
+                  Height:
+                  <input
+                    type="text"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    required
+                  />
+                </label>
 
-                  <label>
-                    Weight:
-                    <input
-                      type="text"
-                      value={weight}
-                      onChange={(e) => setReason(e.target.value)}
-                      required
-                    />
-                  </label>
+                <label>
+                  Weight:
+                  <input
+                    type="text"
+                    value={weight}
+                    onChange={(e) => setWeight(e.target.value)}
+                    required
+                  />
+                </label>
 
-                  <label>
-                    BloodPressure:
-                    <input
-                      type="bloo"
-                      value={blood_pressure}
-                      onChange={(e) => setReason(e.target.value)}
-                      required
-                    />
-                  </label>
+                <label>
+                  Blood Pressure:
+                  <input
+                    type="text"
+                    value={blood_pressure}
+                    onChange={(e) => setBloodPressure(e.target.value)}
+                    required
+                  />
+                </label>
 
                   <button type="submit">Update Details</button>
                 </form>
@@ -213,11 +209,7 @@ const MakeAppointment = () => {
 
             {selectedPatient && (
               <div className="appointment-form">
-          
-              
-
-
-                <form onSubmit={handleSubmit}> 
+               <form onSubmit={handleSubmit}> 
                 <h3>Appointment Details</h3>
 
                   <label>

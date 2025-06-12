@@ -7,9 +7,8 @@ making changes
 1.Pip install requirement.txt
 
 2.In database.py
-*set database connection url
-*create database-HospitalManagementSystem
-*create collections-patients,doctors,appointments,receptionist
+*set mongodb database connection url
+
 
 3.In backend folder 
 create .env file ,set up your Twilio account and GROQ API Key

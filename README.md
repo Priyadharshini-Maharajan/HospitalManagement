@@ -1,6 +1,6 @@
 Smart Hospital Management System
 
-
+making changes
 
 -----------To run the project-------------- 
 

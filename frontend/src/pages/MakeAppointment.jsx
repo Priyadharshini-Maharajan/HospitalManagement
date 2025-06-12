@@ -17,7 +17,7 @@ const MakeAppointment = () => {
   const [loading, setLoading] = useState(true);
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
-  const [bloodPressure, setBloodPressure] = useState('');
+  const [blood_pressure, setBloodPressure] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -168,47 +168,57 @@ const MakeAppointment = () => {
 
             {selectedPatient && (
               <div className="appointment-form">
+          
+              
 
+
+                <form onSubmit={handleSubmit}> 
                 <h3>Patient Details</h3>
-                <p><strong>Patient:</strong> {selectedPatient.name}</p>
 
-                <form onSubmit={handleSubmit}>
-                <label>
-  Height:
-  <input
-    type="text"
-    value={height}
-    onChange={(e) => setHeight(e.target.value)}
-    required
-  />
-</label>
-<label>
-  Weight:
-  <input
-    type="text"
-    value={weight}
-    onChange={(e) => setWeight(e.target.value)}
-    required
-  />
-</label>
-<label>
-  Blood Pressure:
-  <input
-    type="text"
-    value={bloodPressure}
-    onChange={(e) => setBloodPressure(e.target.value)}
-    required
-  />
-</label>
+                  <label>
+                    Height:
+                    <input
+                      type="text"
+                      value={height}
+                      onChange={(e) => setReason(e.target.value)}
+                      required
+                    />
+                  </label>
 
+                  <label>
+                    Weight:
+                    <input
+                      type="text"
+                      value={weight}
+                      onChange={(e) => setReason(e.target.value)}
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    BloodPressure:
+                    <input
+                      type="bloo"
+                      value={blood_pressure}
+                      onChange={(e) => setReason(e.target.value)}
+                      required
+                    />
+                  </label>
 
                   <button type="submit">Update Details</button>
+                </form>
+              </div>
+            )}
 
+
+            {selectedPatient && (
+              <div className="appointment-form">
           
+              
 
+
+                <form onSubmit={handleSubmit}> 
                 <h3>Appointment Details</h3>
-
-
 
                   <label>
                     Reason for Visit:

@@ -7,14 +7,14 @@ from database import doctor_collection
 from database import appointment_collection
 from database import receptionist_collection
 from pydantic import BaseModel
-from twilio.rest import Client
+#from twilio.rest import Client
 import pandas as pd
 import base64
 import requests
 import re
 import os
 import traceback
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from fastapi import Body
 from bson import ObjectId
 from datetime import datetime
@@ -42,30 +42,9 @@ from datetime import datetime
 from fastapi import APIRouter
 from motor.motor_asyncio import AsyncIOMotorClient
 
-
-##-----------
-#1.GET /Root
-#2.POST /login doctor and receptionist
-#3.
-#4.GET /previous visit logs for patient 
-#5.GET /patients 
-#6.GET /doctors
-#7.POST /appointments
-#8.GET /appointments for doctors
-#9.DELETE /appointments
-#10.GET /predicting patient visit type
-#11.POST / Match Face Endpoint
-#12.GET /matched patients
-#13.POST /clear matched_patients
-#14.POST /Registering Patients
-#15.GET /Patient by their medical_id
-#16.POST /predict and notify 
-#17.GET /check notification
-
-
 # Load environment variables
 
-load_dotenv()
+#load_dotenv()
 
 app = FastAPI()
 router = APIRouter()
@@ -111,12 +90,6 @@ class LoginRequest(BaseModel):
     password: str
     role: str
 
-# class PatientUpdate(BaseModel):
-#     height: str
-#     weight: str
-#     blood_pressure: str
-    
-#1.GET /Root
 from pydantic import BaseModel
 from typing import Optional
 
@@ -129,6 +102,12 @@ class PatientUpdate(BaseModel):
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+    role: str
 
 
 @app.put("/patients/{patient_id}")
@@ -159,6 +138,16 @@ async def update_patient(patient_id: str, patient_update: PatientUpdate):
         raise HTTPException(status_code=500, detail=str(e))
     
 #2.POST /login doctor and receptionist
+
+    except Exception as e:
+        import traceback
+        print("ERROR in update_patient route:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+##login doctor and receptionist
 @app.post("/login")
 async def login(data: LoginRequest):
     if data.role == "doctor":
@@ -252,7 +241,7 @@ async def log_visit(appointment_id: str, log: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
     
-#4.GET /previous visit logs for patient  
+    
 @app.get("/appointments/patient/{patient_id}/visit_logs")
 async def get_visit_logs_for_patient(patient_id: str):
     try:
@@ -273,7 +262,7 @@ async def get_visit_logs_for_patient(patient_id: str):
 
 
 
-#5.GET /patients
+# GET /patients
 @app.get("/patients")
 async def get_patients():
     patients = []
@@ -286,7 +275,7 @@ async def get_patients():
 
 
 
-#6.GET /doctors
+
 @app.get("/doctors")
 async def get_doctors(department: str = Query(None)):
     doctors = []
@@ -297,7 +286,7 @@ async def get_doctors(department: str = Query(None)):
 
 
 
-#7.POST /appointments
+# POST /appointments
 from datetime import datetime
 
 @app.post("/appointments")
@@ -349,7 +338,7 @@ async def create_appointment(appointment: AppointmentCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#8.GET /appointments for doctors
+
 @app.get("/appointments/doctor/{doctor_id}")
 async def get_appointments_for_doctor(doctor_id: str):
     appointments = []
@@ -386,7 +375,7 @@ async def get_appointments_for_doctor(doctor_id: str):
 
     return appointments
 
-#9.DELETE /appointments
+
 @app.delete("/appointments/{appointment_id}")
 async def delete_appointment(appointment_id: str):
     result = await appointment_collection.delete_one({"_id": ObjectId(appointment_id)})
@@ -468,7 +457,7 @@ def parse_response(result_json):
     content = result_json["choices"][0]["message"]["content"].strip()
     match = re.search(r"visit type to be: (\w+)", content, re.IGNORECASE)
     return match.group(1) if match else content
-
+###################
 
 def get_valid_int(doc, field_name):
     value = doc.get(field_name, "")
@@ -476,8 +465,8 @@ def get_valid_int(doc, field_name):
         raise ValueError(f"{field_name} is missing or empty.")
     return int(value)
 
-
-#10.GET /predicting patient visit type
+#-------------------------------------------
+###1.predicting patient visit type
 @app.get("/predict/{patient_id}")
 async def predict_visit_type_from_db(patient_id: str):
     try:
@@ -515,9 +504,9 @@ async def predict_visit_type_from_db(patient_id: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
     
-#######################
+#---------------------------------------------
 
-##Face capture using Yolo and face match using Faiss##
+###2.Face capture using Yolo and face match using Faiss
 
 
 
@@ -528,7 +517,9 @@ ENCODINGS_PATH = "encodings.h5"
 #ENCODINGS_PATH = "encodings.npy"
 METADATA_PATH = "metadata.json"
 
+# -------------------------------
 # Load FAISS Index
+# -------------------------------
 async def load_index_from_disk():
     global faiss_index, metadata
 
@@ -550,7 +541,9 @@ async def load_index_from_disk():
         print(f"❌ Error loading FAISS index: {e}")
         raise e
 
-#11.POST / Match Face Endpoint
+# -------------------------------
+# Match Face Endpoint
+# -------------------------------
 matched_patients = [] 
 index_lock=asyncio.Lock()
 @app.post("/match_face/")
@@ -616,12 +609,12 @@ async def match_face(file: UploadFile = File(...)):
         })
 executor = ThreadPoolExecutor()  
 
-#12.GET /matched patients
+
 @app.get("/match_patients")
 async def get_matched_patients():
     return matched_patients
 
-#13.POST /clear matched_patients
+
 @app.post("/clear_matched_patients/")
 async def clear_matched_patients():
     global matched_patients
@@ -675,7 +668,7 @@ async def append_encoding_to_index(new_encoding, new_metadata):
         
 
 
-#14.POST /Registering Patients
+####Registering Patients
 @app.post("/api/patients")
 async def register_patient(
     name: str = Form(...),
@@ -683,8 +676,8 @@ async def register_patient(
     address: str = Form(...),
     phone_number: str = Form(...),
     email_id: str = Form(...),
-    height: str = Form(...),
-    weight: str = Form(...),
+    admissionheight: str = Form(...),
+    admissionweight: str = Form(...),
     blood_pressure: str = Form(...),
     age: str = Form(...),
     gender: str = Form(...),
@@ -722,8 +715,8 @@ async def register_patient(
             "address": address,
             "phone_number": phone_number,
             "email_id": email_id,
-            "height": height,
-            "weight": weight,
+            "admissionheight": admissionheight,
+            "admissionweight": admissionweight,
             "blood_pressure": blood_pressure,
             "age": age,
             "gender": gender,
@@ -780,7 +773,7 @@ async def get_patient_from_db(object_id):
     print("✅ get_patient_from_db result:", result)
     return result
 
-#15.GET /Patient by their medical_id
+
 @app.get("/get_patient/{medical_id}")
 async def get_patient(medical_id: str):
     from bson import ObjectId
@@ -800,7 +793,16 @@ async def get_patient(medical_id: str):
 
 
 
-##16.POST /predict and notify
+
+
+
+
+
+
+
+
+
+
 
 @app.post("/predict_and_notify/{patient_id}")
 async def predict_and_notify(patient_id: str, reason_for_visit: str = Body(...)):
@@ -821,8 +823,8 @@ async def predict_and_notify(patient_id: str, reason_for_visit: str = Body(...))
             patient = Patient(
                 age=get_valid_int(patient_doc, "age"),
                 gender=str(patient_doc.get("gender", "")).strip(),
-                admissionheight=get_valid_int(patient_doc, "height"),
-                admissionweight=get_valid_int(patient_doc, "weight"),
+                admissionheight=get_valid_int(patient_doc, "admissionheight"),
+                admissionweight=get_valid_int(patient_doc, "admissionweight"),
                 unitvisitnumber=get_valid_int(patient_doc, "unitvisitnumber"),
                 apacheadmissiondx=str(patient_doc.get("apacheadmissiondx", "")).strip()
             )
@@ -869,8 +871,6 @@ async def predict_and_notify(patient_id: str, reason_for_visit: str = Body(...))
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Prediction and notification failed: {str(e)}")
 
-
-#17.GET /check notification
 @app.get("/check_notification/{patient_id}")
 async def check_notification(patient_id: str):
     try:

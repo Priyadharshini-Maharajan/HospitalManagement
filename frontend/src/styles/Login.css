@@ -56,3 +56,20 @@
     background-color: #003366;
   }
   
+
+  .register-btn {
+    margin-top: 10px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #0059b3;
+    border-radius: 8px;
+    background-color: transparent;
+    color: #0059b3;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .register-btn:hover {
+    background-color: #0059b3;
+    color: white;
+  }

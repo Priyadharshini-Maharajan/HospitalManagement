@@ -103,6 +103,13 @@ const Login = () => {
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+        <button
+          type="button"
+          className="register-btn"
+          onClick={() => navigate('/register')}
+        >
+          New User? Register Here
+        </button>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ making changes
 
 -----------To run the project-------------- 
 
-1.Pip install requirement.txt
+1.pip install -r requirements.txt
 
 2.In database.py
 *set mongodb database connection url

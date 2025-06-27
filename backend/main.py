@@ -18,7 +18,6 @@ import traceback
 from fastapi import Body
 from bson import ObjectId
 from datetime import datetime
-import face_recognition
 import numpy as np
 import cv2
 from io import BytesIO
@@ -31,7 +30,6 @@ from fastapi import APIRouter
 import json
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
-#from flask import Flask, jsonify 
 import h5py
 import uuid
 from fastapi.encoders import jsonable_encoder
@@ -41,7 +39,10 @@ from bson import ObjectId
 from datetime import datetime
 from fastapi import APIRouter
 from motor.motor_asyncio import AsyncIOMotorClient
+import insightface
+from insightface.app import FaceAnalysis
 
+from typing import Optional
 # Load environment variables
 
 #load_dotenv()
@@ -88,10 +89,7 @@ class AppointmentCreate(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
-    role: str
-
-from pydantic import BaseModel
-from typing import Optional
+    role: str 
 
 class PatientUpdate(BaseModel):
     height: Optional[float] = None
@@ -103,11 +101,6 @@ class PatientUpdate(BaseModel):
 def read_root():
     return {"message": "FastAPI server is running!"}
 
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-    role: str
 
 
 @app.put("/patients/{patient_id}")
@@ -510,16 +503,49 @@ async def predict_visit_type_from_db(patient_id: str):
 
 
 
+
+
 metadata = []
 faiss_index = None
-
+model = None
 ENCODINGS_PATH = "encodings.h5"
-#ENCODINGS_PATH = "encodings.npy"
 METADATA_PATH = "metadata.json"
 
-# -------------------------------
-# Load FAISS Index
-# -------------------------------
+
+# Get the directory of the current script (e.g., backend/)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# New path to models inside backend
+MODEL_ROOT = os.path.join(BASE_DIR, "models")
+MODEL_PATH = os.path.join(MODEL_ROOT, "buffalo_l", "det_10g.onnx")
+
+@app.on_event("startup")
+async def load_model_once():
+    global model 
+    # Make sure the model directory exists (creates it if missing)
+    os.makedirs(MODEL_ROOT, exist_ok=True)
+    print(f"📁 Using model directory: {MODEL_ROOT}")
+
+    # Check if model file already exists (cached)
+    if os.path.exists(MODEL_PATH):
+        print("🗂 Cached model found, loading from disk...")
+    else:
+        print("🌐 Cached model not found. Model will be downloaded now...")
+
+    try:
+        # Initialize and prepare the InsightFace model
+        model = FaceAnalysis(name="buffalo_l", root=MODEL_ROOT)
+        model.prepare(ctx_id=-1)  # Use ctx_id = -1 if running on CPU only
+
+        # Success message
+        print("✅ Model loaded successfully and ready for inference.")
+
+    except Exception as e:
+        # Handle errors if the model fails to load
+        print(f"❌ Failed to load InsightFace model: {e}")
+    
+
+
 async def load_index_from_disk():
     global faiss_index, metadata
 
@@ -531,19 +557,18 @@ async def load_index_from_disk():
         with h5py.File(ENCODINGS_PATH, "r") as f:
             encodings_np = f["encodings"][:]
         faiss.normalize_L2(encodings_np)  # Normalize for IndexFlatIP
+        
         with open(METADATA_PATH, "r") as f:
             metadata = json.load(f)
 
-        faiss_index = faiss.IndexFlatIP(128)
+        faiss_index = faiss.IndexFlatIP(512) # InsightFace embeddings are 512-d
         faiss_index.add(encodings_np)
-        print("✅ FAISS index loaded from disk.")
+        print("FAISS index loaded from disk.")
     except Exception as e:
-        print(f"❌ Error loading FAISS index: {e}")
+        print(f"Error loading FAISS index: {e}")
         raise e
 
-# -------------------------------
-# Match Face Endpoint
-# -------------------------------
+import traceback 
 matched_patients = [] 
 index_lock=asyncio.Lock()
 @app.post("/match_face/")
@@ -554,35 +579,36 @@ async def match_face(file: UploadFile = File(...)):
         image_bytes = await file.read()
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         np_image = np.array(image)
-
-        encodings = face_recognition.face_encodings(np_image)
-        if not encodings:
+        print(f"[DEBUG] Image shape: {np_image.shape}, dtype: {np_image.dtype}")
+        faces = model.get(np_image)
+        print(f"[DEBUG] Detected faces: {len(faces)}")
+        if not faces:
             raise HTTPException(status_code=400, detail="No face detected in the image.")
 
-        uploaded_encoding = np.array(encodings[0], dtype=np.float32).reshape(1, -1)
+        uploaded_encoding = np.array(faces[0].embedding, dtype=np.float32).reshape(1, -1)
         faiss.normalize_L2(uploaded_encoding)
         
         async with index_lock:
             if faiss_index is None or len(metadata) == 0 or faiss_index.ntotal == 0:
                await load_index_from_disk()
 
-        print("✅ Performing FAISS search...")
+        print("Performing FAISS search...")
         D, I = faiss_index.search(uploaded_encoding, k=1)
 
         similarity = D[0][0]
         index = I[0][0]
 
-        print(f"🔎 Similarity: {similarity}")
-        print(f"🔎 Index: {index}")
+        print(f"Similarity: {similarity}")
+        print(f"Index: {index}")
 
         if index < len(metadata):
-            print(f"🔎 Closest Match: {metadata[index]}")
+            print(f" Closest Match: {metadata[index]}")
 
-        if similarity > 0.9:  # Reduce threshold to test
+        if similarity > 0.6:  # Reduce threshold to test
             match = metadata[index]
             medical_id=match.get("medical_id")
             patient_from_db = await patients_collection.find_one({"medical_id": medical_id})            
-            #to store matched patient and send result to frontend
+    
             patient={
                 "name":match.get("name"),
                 "medical_id":match.get("medical_id"),
@@ -592,22 +618,25 @@ async def match_face(file: UploadFile = File(...)):
                 "base_64":patient_from_db["image_base64"]
                 
             }
-            matched_patients.append(patient)
+            
+            if all(p["medical_id"] != patient["medical_id"] for p in matched_patients):
+                matched_patients.append(patient)
             
             return {
                 "status": "matched",
                 "name": match["name"], 
-                #"medical_id":match["medical_id"]
+                "medical_id":match["medical_id"]
             }
 
         return {"status": "not_found"}
 
     except Exception as e:
+        print("[ERROR] Exception in match_face:", traceback.format_exc())
         return JSONResponse(status_code=500, content={
             "status": "error",
             "message": f"Exception occurred: {str(e)}"
         })
-executor = ThreadPoolExecutor()  
+
 
 
 @app.get("/match_patients")
@@ -625,25 +654,34 @@ async def clear_matched_patients():
 async def append_encoding_to_index(new_encoding, new_metadata):
     global faiss_index, metadata
 
-    new_encoding = np.array(new_encoding, dtype=np.float32).reshape(1, 128)
+    new_encoding = np.array(new_encoding, dtype=np.float32).reshape(1, 512)
     faiss.normalize_L2(new_encoding)
-    
+
     # Append to HDF5 encodings file
     if not os.path.exists(ENCODINGS_PATH):
         with h5py.File(ENCODINGS_PATH, "w") as f:
             f.create_dataset(
                 "encodings",
                 data=new_encoding,
-                maxshape=(None, 128),
+                maxshape=(None, 512),
                 chunks=True,
                 dtype='float32'
             )
     else:
         with h5py.File(ENCODINGS_PATH, "a") as f:
-            ds = f["encodings"]
-            current_len = ds.shape[0]
-            ds.resize((current_len + 1, 128))
-            ds[current_len] = new_encoding
+            if "encodings" not in f:
+                f.create_dataset(
+                    "encodings",
+                    data=new_encoding,
+                    maxshape=(None, 512),
+                    chunks=True,
+                    dtype='float32'
+                )
+            else:
+                ds = f["encodings"]
+                current_len = ds.shape[0]
+                ds.resize((current_len + 1, 512))
+                ds[current_len] = new_encoding
 
     # Update metadata JSON
     if not os.path.exists(METADATA_PATH):
@@ -660,7 +698,7 @@ async def append_encoding_to_index(new_encoding, new_metadata):
     if faiss_index is None or faiss_index.ntotal == 0:
         with h5py.File(ENCODINGS_PATH, "r") as f:
             all_encodings = f["encodings"][:]
-        faiss_index = faiss.IndexFlatIP(128)
+        faiss_index = faiss.IndexFlatIP(512)
         faiss_index.add(all_encodings)
     else:
         faiss_index.add(new_encoding)
@@ -676,30 +714,33 @@ async def register_patient(
     address: str = Form(...),
     phone_number: str = Form(...),
     email_id: str = Form(...),
-    admissionheight: str = Form(...),
-    admissionweight: str = Form(...),
+    height: str = Form(...),
+    weight: str = Form(...),
     blood_pressure: str = Form(...),
     age: str = Form(...),
     gender: str = Form(...),
     unitvisitnumber: str = Form(...),
-    apacheadmissiondx: str = Form(...),
+    reason: str = Form(...),
     picture: UploadFile = File(...)
 ):
+    global model
     try:
         # Read image and convert to base64
         image_bytes = await picture.read()
         image_base64 = base64.b64encode(image_bytes).decode('utf-8')
 
-        # Load image using PIL and convert to numpy array
-        image = face_recognition.load_image_file(io.BytesIO(image_bytes))
+        # Load image and convert to numpy array
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        np_image = np.array(image)
 
-        # Detect face and extract embeddings
-        face_encodings = face_recognition.face_encodings(image)
+        # Use InsightFace to detect faces and get embedding
+        faces = model.get(np_image)
 
-        if not face_encodings:
+        if not faces:
             return JSONResponse(status_code=400, content={"error": "No face found in the image."})
 
-        face_embedding = face_encodings[0].tolist()  # Convert NumPy array to list for MongoDB
+        # Use the first face's embedding (512-d)
+        face_embedding = faces[0].embedding.tolist()
 
         # Format phone number
         if not phone_number.startswith("+"):
@@ -715,13 +756,13 @@ async def register_patient(
             "address": address,
             "phone_number": phone_number,
             "email_id": email_id,
-            "admissionheight": admissionheight,
-            "admissionweight": admissionweight,
+            "height": height,
+            "weight": weight,
             "blood_pressure": blood_pressure,
             "age": age,
             "gender": gender,
             "unitvisitnumber": unitvisitnumber,
-            "apacheadmissiondx": apacheadmissiondx,
+            "reason": reason,
             "image_base64": image_base64,
             "face_embedding": face_embedding
         }
@@ -737,24 +778,22 @@ async def register_patient(
                 "medical_id":medical_id}
             )
             
-        # # Send SMS using Twilio
-        # message = twilio_client.messages.create(
-        #     body=f"Hi {name}, you are successfully registered at the hospital.",
-        #     from_=twilio_number,
-        #     to=phone_number
-        # )
+        # Send SMS using Twilio
+        message = twilio_client.messages.create(
+            body=f"Hi {name}, you are successfully registered at the hospital.",
+            from_=twilio_number,
+            to=phone_number
+        )
 
         return {
             "message": "Patient registered successfully",
-            #"sms_sid": message.sid,
-            #"patient_id": str(insert_result.inserted_id)
+            "sms_sid": message.sid,
+            "patient_id": str(insert_result.inserted_id)
         }
 
     except Exception as e:
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": str(e)})
-
-
 
 
 executor = ThreadPoolExecutor()

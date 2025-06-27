@@ -26,7 +26,7 @@ const FaceCapture = () => {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { 
     let interval;
     if (cameraOn) {
       interval = setInterval(() => {

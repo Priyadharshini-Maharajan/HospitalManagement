@@ -1,4 +1,5 @@
 backend/.env  
 backend/encodings.h5
+backend/models
 developement
 myenv 

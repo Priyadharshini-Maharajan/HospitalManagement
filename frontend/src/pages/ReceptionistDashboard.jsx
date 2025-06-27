@@ -8,6 +8,7 @@ import AddPatient from './AddPatient';
 import MakeAppointment from './MakeAppointment';
 import Calendar from '../components/Calendar';
 import '../styles/Dashboard.css';
+import FaceCapture from './FaceCapture';
 
 const ReceptionistDashboard = () => {
   return (
@@ -23,6 +24,7 @@ const ReceptionistDashboard = () => {
                 <Calendar />
               </>
             } />
+            <Route path="face-capture" element={<FaceCapture/>} />
             <Route path="patients" element={<Patients />} />
             <Route path="appointments" element={<Appointments />} />
             <Route path="add-patient" element={<AddPatient />} />

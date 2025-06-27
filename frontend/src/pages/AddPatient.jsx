@@ -44,11 +44,11 @@ const AddPatient = () => {
     formData.append("phone_number", form.phone);
     formData.append("email_id", form.emailid);
     formData.append("address", form.address);
-    formData.append("admissionheight", form.height);
-    formData.append("admissionweight", form.weight);
+    formData.append("height", form.height);
+    formData.append("weight", form.weight);
     formData.append("blood_pressure", form.bloodPressure);
     formData.append("unitvisitnumber", "UV001"); // Replace or fetch dynamically
-    formData.append("apacheadmissiondx", form.reason);
+    formData.append("reason", form.reason);
     formData.append("picture", photo);
 
     try {

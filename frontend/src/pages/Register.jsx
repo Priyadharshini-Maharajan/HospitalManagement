@@ -1,32 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Login.css'; // reuse login styles
+import '../styles/Login.css';
 
 const Register = () => {
   const [role, setRole] = useState('');
+  const [name, setName] = useState('');
   const [id, setId] = useState('');
+  const [dept, setDept] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (!role || !id || !password || !confirmPassword) {
+    if (!role || !name || !password || (role === 'doctor' && (!id || !dept))) {
       alert('All fields are required.');
       return;
     }
 
-    if (password !== confirmPassword) {
-      alert('Passwords do not match.');
-      return;
-    }
+    const payload =
+      role === 'doctor'
+        ? { role, name, id, dept, password }
+        : { role, name, password };
 
     try {
       const response = await fetch('http://localhost:8000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, id, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -51,7 +52,13 @@ const Register = () => {
           <select
             id="role"
             value={role}
-            onChange={(e) => setRole(e.target.value)}
+            onChange={(e) => {
+              setRole(e.target.value);
+              setName('');
+              setId('');
+              setDept('');
+              setPassword('');
+            }}
             required
           >
             <option value="">-- Select --</option>
@@ -59,35 +66,53 @@ const Register = () => {
             <option value="receptionist">Receptionist</option>
           </select>
 
-          <label htmlFor="id">{role === 'doctor' ? 'Doctor ID' : role ===''? 'ID' :'Receptionist ID'}:</label>
-          <input
-            type="text"
-            id="id"
-            placeholder={`Enter ${role === 'doctor' ? 'Doctor ID' : role ===''? 'ID' : 'Receptionist ID'}`}
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            required
-          />
+          {role && (
+            <>
+              <label htmlFor="name">Name:</label>
+              <input
+                type="text"
+                id="name"
+                placeholder="Enter name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
 
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            placeholder="Enter password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+              {role === 'doctor' && (
+                <>
+                  <label htmlFor="id">Doctor ID:</label>
+                  <input
+                    type="text"
+                    id="id"
+                    placeholder="Enter Doctor ID"
+                    value={id}
+                    onChange={(e) => setId(e.target.value)}
+                    required
+                  />
 
-          <label htmlFor="confirmPassword">Confirm Password:</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            placeholder="Re-enter password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+                  <label htmlFor="dept">Department:</label>
+                  <input
+                    type="text"
+                    id="dept"
+                    placeholder="Enter department"
+                    value={dept}
+                    onChange={(e) => setDept(e.target.value)}
+                    required
+                  />
+                </>
+              )}
+
+              <label htmlFor="password">Password:</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </>
+          )}
 
           <button type="submit" className="login-btn">Register</button>
           <button

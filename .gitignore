@@ -1,8 +1,14 @@
-backend/.env  
+
+# Environment variables
+backend/.env
+developement
+myenv
+
+
 backend/encodings.h5
 backend/models/
+
 backend/Dockerfile
 frontend/Dockerfile
 docker-compose.yml
-developement
-myenv 
+

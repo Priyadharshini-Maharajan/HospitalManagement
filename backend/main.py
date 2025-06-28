@@ -95,17 +95,60 @@ class PatientUpdate(BaseModel):
     height: Optional[float] = None
     weight: Optional[float] = None
     blood_pressure: Optional[str] = None
+    
+    
+class Doctor(BaseModel):
+    role: str
+    name: str
+    id: str
+    dept: str
+    password: str
+
+class Receptionist(BaseModel):
+    role: str
+    name: str
+    password: str
 
 ##1.Root
 @app.get("/")
 def read_root():
     return {"message": "FastAPI server is running!"}
 
+##2.Register
+@app.post("/register")
+async def register_user(user: dict):
+    role = user.get("role")
 
+    if role == "doctor":
+        doctor = Doctor(**user)
 
+        # Check if doctor with same ID already exists
+        existing = await doctor_collection.find_one({"id": doctor.id})
+        if existing:
+            raise HTTPException(status_code=400, detail="Doctor already exists.")
+
+        await doctor_collection.insert_one(doctor.model_dump())
+        return {"message": "Doctor registered successfully."}
+
+    elif role == "receptionist":
+        receptionist = Receptionist(**user)
+
+        # Check if receptionist with same name already exists
+        existing = await receptionist_collection.find_one({"name": receptionist.name})
+        if existing:
+            raise HTTPException(status_code=400, detail="Receptionist already exists.")
+
+        await receptionist_collection.insert_one(receptionist.model_dump())
+        return {"message": "Receptionist registered successfully."}
+
+    else:
+        raise HTTPException(status_code=400, detail="Invalid role.")
+
+##Patient update
 @app.put("/patients/{patient_id}")
 async def update_patient(patient_id: str, patient_update: PatientUpdate):
     try:
+        patient_obj_id = ObjectId(patient_id)
         update_fields = {}
         if patient_update.height:
             update_fields["height"] = patient_update.height
@@ -114,12 +157,12 @@ async def update_patient(patient_id: str, patient_update: PatientUpdate):
         if patient_update.blood_pressure:
             update_fields["blood_pressure"] = patient_update.blood_pressure
 
-        result = patients_collection.update_one(
-            {"_id": ObjectId(patient_id)},
+        result = await patients_collection.update_one(
+            {"_id": patient_obj_id},
             {"$set": update_fields}
         )
 
-        if not result or result.matched_count == 0:
+        if not result:
             raise HTTPException(status_code=404, detail="Patient not found.")
 
         return {"message": "Patient details updated successfully."}
@@ -130,17 +173,8 @@ async def update_patient(patient_id: str, patient_update: PatientUpdate):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
     
-#2.POST /login doctor and receptionist
 
-    except Exception as e:
-        import traceback
-        print("ERROR in update_patient route:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-
-##login doctor and receptionist
+##3.login doctor and receptionist
 @app.post("/login")
 async def login(data: LoginRequest):
     if data.role == "doctor":
@@ -268,7 +302,7 @@ async def get_patients():
 
 
 
-
+#GET /doctors
 @app.get("/doctors")
 async def get_doctors(department: str = Query(None)):
     doctors = []
@@ -321,7 +355,7 @@ async def create_appointment(appointment: AppointmentCreate):
         if visit_type:
             appointment_doc["visitType"] = visit_type
 
-        appointment_collection.insert_one(appointment_doc)
+        await appointment_collection.insert_one(appointment_doc)
 
         return {
             "message": "Appointment created successfully",

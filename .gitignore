@@ -1,5 +1,8 @@
 backend/.env  
 backend/encodings.h5
 backend/models/
+backend/Dockerfile
+frontend/Dockerfile
+docker-compose.yml
 developement
 myenv 

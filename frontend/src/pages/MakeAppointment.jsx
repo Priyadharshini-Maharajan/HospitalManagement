@@ -40,7 +40,7 @@ const MakeAppointment = () => {
       const payload = {
         height,
         weight,
-        blood_pressure: bloodPressure
+        blood_pressure
       };
   
       await axios.put(`http://localhost:8000/patients/${selectedPatient._id}`, payload);
@@ -116,16 +116,14 @@ const MakeAppointment = () => {
   };
   
   
+const departments = Array.from(new Set(
+  doctors.filter(doc => doc.dept).map(doc => doc.dept.trim())
+));
 
+const filteredDoctors = doctors.filter(doc =>
+  doc.dept && doc.dept.toLowerCase() === department.toLowerCase()
+);
 
-    
-  const departments = Array.from(new Set(
-    doctors.filter(doc => doc.department).map(doc => doc.department.trim())
-  ));
-
-  const filteredDoctors = doctors.filter(doc =>
-    doc.department && doc.department.toLowerCase() === department.toLowerCase()
-  );
 
   return (
     <div className="dashboard-wrapper">

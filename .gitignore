@@ -12,3 +12,7 @@ backend/Dockerfile
 frontend/Dockerfile
 docker-compose.yml
 
+backend/__pycache__/
+*.pyc
+*.pyo 
+backend/EHR_cleaned.csv

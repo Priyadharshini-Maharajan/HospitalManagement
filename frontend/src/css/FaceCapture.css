@@ -1,11 +1,19 @@
+.main-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f4fa;
+  min-height: 100vh;
+}
+
 .face-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  min-height: 80vh; /* enough space for sidebar layout */
-  padding: 20px;
   box-sizing: border-box;
+  padding: 20px;
+  width: 100%;
 }
 
 .face-content {
@@ -13,7 +21,7 @@
   background-color: #f8faff;
   padding: 30px;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   max-width: 700px;
   width: 100%;
 }
@@ -27,3 +35,4 @@ button {
   padding: 10px 20px;
   cursor: pointer;
 }
+

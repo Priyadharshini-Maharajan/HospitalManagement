@@ -32,7 +32,7 @@ In receptionist collection
 }
 
  
-5.backend>unicorn main:app --reload     
+5.backend>uvicorn main:app --reload     
 6.frontend>npm install
 7.frontend>npm install react-calendar
 8.frontend>npm run dev

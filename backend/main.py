@@ -66,7 +66,7 @@ app.include_router(db2_router)
 account_sid = os.getenv("TWILIO_ACCOUNT_SID")
 auth_token = os.getenv("TWILIO_AUTH_TOKEN")
 twilio_number = os.getenv("TWILIO_PHONE_NUMBER")
-#twilio_client = Client(account_sid, auth_token)
+
 
 # Patient Model for prediction
 class Patient(BaseModel):

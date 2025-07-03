@@ -1,0 +1,36 @@
+services:
+  backend:
+    build: 
+      context: ./backend
+    container_name: my-backends
+    ports:
+      - "8000:8000"
+    restart: always
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/HospitalManagementSystem
+    depends_on:
+      - mongo
+   
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: my-frontends
+    ports:
+      - "5173:5173"
+    restart: always
+  
+
+  
+
+  mongo:
+    image: mongo:6.0
+    container_name: my-mongos
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

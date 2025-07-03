@@ -22,8 +22,8 @@ const Login = () => {
     try {
       // Optional: Check if backend is alive before trying login
       const ping = await fetch('http://localhost:8000/', { method: 'GET' });
-      const pingResult = await ping.json();
-      console.log('Backend ping:', pingResult);
+      if (!ping.ok) throw new Error("Backend not reachable");
+       console.log("Backend is up");
 
       const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
